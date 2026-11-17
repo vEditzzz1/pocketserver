@@ -135,4 +135,9 @@ PocketServer bundles and builds on other people's work:
 
 ## License
 
-No license file has been added yet.
+PocketServer's own source is released under the [MIT License](LICENSE).
+
+That does not relicense the third-party pieces it bundles or downloads: the
+`proot` binaries in `assets/runtime` are GPL-2.0, and the Alpine minirootfs in
+`assets/rootfs` plus everything inside it keeps its upstream licenses. See
+[Credits](#credits) for the full list.
