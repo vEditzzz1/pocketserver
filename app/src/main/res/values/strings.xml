@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PocketServer</string>
+    <string name="app_subtitle">Linux web servers on your phone</string>
+    <string name="label_runtime">Runtime</string>
+    <string name="label_mode">Mode</string>
+    <string name="label_panel">Panel</string>
+    <string name="label_device">Device</string>
+    <string name="btn_install">Install runtime</string>
+    <string name="btn_panel">Open panel</string>
+    <string name="btn_console_clear">Clear</string>
+    <string name="section_console">Console</string>
+</resources>

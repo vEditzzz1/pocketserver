@@ -1,0 +1,19 @@
+# Build outputs
+build/
+app/build/
+.gradle/
+.kotlin/
+
+# Machine-specific SDK location
+local.properties
+
+# IDE / editor
+.idea/
+*.iml
+.DS_Store
+
+# Signing material and packaged artifacts
+*.apk
+*.aab
+*.jks
+*.keystore

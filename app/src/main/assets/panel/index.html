@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>PocketServer</title>
+<link rel="stylesheet" href="panel.css">
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>PocketServer</h1>
+    <p id="host" class="muted">connecting…</p>
+  </div>
+  <span id="mode" class="chip">—</span>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Sections">
+  <button type="button" data-tab="sites" aria-pressed="true">Sites</button>
+  <button type="button" data-tab="images" aria-pressed="false">Images</button>
+  <button type="button" data-tab="packages" aria-pressed="false">Packages</button>
+  <button type="button" data-tab="podroid" aria-pressed="false">Podroid</button>
+  <button type="button" data-tab="system" aria-pressed="false">System</button>
+  <button type="button" data-tab="guide" aria-pressed="false">Guide</button>
+</nav>
+
+<main>
+  <!-- ------------------------------------------------------------- sites -->
+  <div class="tabpanel" data-tab="sites">
+    <section class="card" aria-labelledby="sites-h">
+      <div class="row between">
+        <h2 id="sites-h">Sites</h2>
+        <button id="new-site" class="btn ghost">+ New site</button>
+      </div>
+      <ul id="sites" class="list"></ul>
+      <p id="sites-empty" class="muted hidden">No sites yet — add one to serve a folder.</p>
+    </section>
+  </div>
+
+  <!-- ------------------------------------------------------------ images -->
+  <div class="tabpanel hidden" data-tab="images">
+    <section class="card" aria-labelledby="cat-h">
+      <div class="row between">
+        <h2 id="cat-h">Container catalog</h2>
+        <span id="cat-source" class="chip">built-in</span>
+      </div>
+      <p class="muted small">Installable images with a ready-made command, port and volumes. The image is pulled when you start the container.</p>
+      <label class="sr-only" for="cat-q">Search images</label>
+      <input id="cat-q" class="input" placeholder="Search — nginx, redis, python…" autocomplete="off" spellcheck="false">
+      <div class="wrap" id="cat-cats"></div>
+      <div class="row between" style="margin-top:10px">
+        <label class="check" style="margin:0">
+          <input id="cat-remote" type="checkbox" checked>
+          <span>Search Docker Hub too</span>
+        </label>
+        <button id="cat-reload" class="btn ghost" type="button">Refresh</button>
+      </div>
+      <p id="cat-note" class="muted small hidden"></p>
+      <div id="cat-grid" class="catgrid" aria-live="polite"></div>
+      <div id="cat-form" class="catpanel hidden"></div>
+    </section>
+
+    <section class="card" aria-labelledby="ctr-h">
+      <div class="row between">
+        <h2 id="ctr-h">Containers</h2>
+        <span class="chip">udocker · PRoot</span>
+      </div>
+      <p class="muted small">A Docker image without Docker: udocker pulls it, one PRoot runs it on the app UID. Open a container to configure its image, command, environment and volumes.</p>
+
+      <div class="create">
+        <label class="sr-only" for="ctr-image">Image</label>
+        <input id="ctr-image" class="input" value="alpine" placeholder="nginx:alpine" autocomplete="off">
+        <label class="sr-only" for="ctr-command">Command inside the container</label>
+        <input id="ctr-command" class="input" placeholder="command (optional)" autocomplete="off">
+        <div class="wrap">
+          <button id="ctr-run" class="btn">Pull &amp; create</button>
+        </div>
+      </div>
+
+      <ul id="containers" class="list"></ul>
+      <p id="containers-empty" class="muted hidden">No containers yet — pull an image above.</p>
+    </section>
+  </div>
+
+  <!-- ---------------------------------------------------------- packages -->
+  <div class="tabpanel hidden" data-tab="packages">
+    <section class="card" aria-labelledby="pkg-h">
+      <div class="row between">
+        <h2 id="pkg-h">Packages</h2>
+        <span id="pkg-count" class="chip">—</span>
+      </div>
+      <p class="muted small">Package sets recorded in the guest. Uninstalling removes the packages, not your files; a site that needs them installs them again on its next start.</p>
+      <ul id="pkg-list" class="list"></ul>
+      <p id="pkg-empty" class="muted hidden">No package sets installed yet.</p>
+      <div class="wrap" style="margin-top:8px">
+        <button id="pkg-check" class="btn ghost" type="button">Check status</button>
+      </div>
+      <p class="sub-h">Available sets</p>
+      <div class="wrap" id="pkg-available"></div>
+    </section>
+  </div>
+
+  <!-- ----------------------------------------------------------- podroid -->
+  <div class="tabpanel hidden" data-tab="podroid">
+    <section class="card" aria-labelledby="pod-h">
+      <div class="row between">
+        <h2 id="pod-h">Podroid VM</h2>
+        <span id="pod-state" class="chip">—</span>
+      </div>
+      <p class="muted small" id="pod-note">A real Alpine kernel on Podroid's UML engine. While it runs it owns the forwarded site ports, so sites and guest commands run inside it.</p>
+      <div class="kv" id="pod-info"></div>
+      <div class="wrap" style="margin-top:10px">
+        <button id="pod-boot" class="btn" type="button">Boot VM</button>
+        <button id="pod-stop" class="btn ghost" type="button">Stop VM</button>
+        <button id="pod-reboot" class="btn ghost" type="button">Reboot</button>
+        <button id="pod-install" class="btn ghost hidden" type="button">Install images</button>
+      </div>
+      <p id="pod-err" class="muted small hidden"></p>
+    </section>
+
+    <section class="card" aria-labelledby="pod-sh-h">
+      <div class="row between">
+        <h2 id="pod-sh-h">Guest shell</h2>
+        <span id="pod-rc" class="chip off">idle</span>
+      </div>
+      <p class="muted small">Runs in the guest over the 9099 bridge, independent of the selected runtime mode.</p>
+      <div class="wrap" id="pod-quick">
+        <button class="chipbtn" type="button" data-cmd="uname -a">uname</button>
+        <button class="chipbtn" type="button" data-cmd="uptime">uptime</button>
+        <button class="chipbtn" type="button" data-cmd="free -m">memory</button>
+        <button class="chipbtn" type="button" data-cmd="df -h / /sdcard">disk</button>
+        <button class="chipbtn" type="button" data-cmd="ps -o pid,comm 2>/dev/null | head -20">processes</button>
+        <button class="chipbtn" type="button" data-cmd="apk info 2>/dev/null | head -20">packages</button>
+        <button class="chipbtn" type="button" data-cmd="socat -V 2>&1 | head -2; ls -l /usr/local/bin/ps-exec">bridge</button>
+      </div>
+      <form id="pod-form" class="cmdrow" autocomplete="off">
+        <label class="sr-only" for="pod-cmd">Command</label>
+        <input id="pod-cmd" class="input" placeholder="uname -a   ·   apk add nginx   ·   ps" spellcheck="false" autocapitalize="off" autocorrect="off">
+        <button id="pod-run" class="btn" type="submit">Run</button>
+      </form>
+      <pre id="pod-out" class="console podout" aria-live="polite">Run a command to see the guest's answer.</pre>
+    </section>
+
+    <section class="card" aria-labelledby="pod-fwd-h">
+      <div class="row between">
+        <h2 id="pod-fwd-h">Port forwards</h2>
+        <span id="pod-fwd-count" class="chip off">—</span>
+      </div>
+      <p class="muted small">Host → guest forwards owned by QEMU. Site ports are added when a site starts; extra ones can be added here.</p>
+      <ul id="pod-fwd" class="list"></ul>
+      <form id="pod-fwd-form" class="cmdrow" autocomplete="off">
+        <label class="sr-only" for="pod-fwd-port">Port</label>
+        <input id="pod-fwd-port" class="input" inputmode="numeric" placeholder="e.g. 8081" spellcheck="false">
+        <button class="btn ghost" type="submit">Forward</button>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="pod-log-h">
+      <div class="row between">
+        <h2 id="pod-log-h">Kernel log</h2>
+        <span class="chip off">vm.log</span>
+      </div>
+      <p class="muted small">The console output of the booted kernel, as the launcher wrote it.</p>
+      <div class="wrap">
+        <button id="pod-vmlog" class="btn ghost" type="button">Show last 120 lines</button>
+      </div>
+      <pre id="pod-vmlog-out" class="console podout hidden" aria-live="polite"></pre>
+    </section>
+
+    <section class="card" aria-labelledby="pod-mt-h">
+      <h2 id="pod-mt-h">Maintenance</h2>
+      <p class="muted small">The storage overlay holds everything installed in the guest. Wiping it deletes those changes (a fresh 2 GB image is formatted on the next boot); the kernel images stay. Stop the VM first.</p>
+      <div class="wrap">
+        <button id="pod-wipe" class="btn danger" type="button">Wipe storage overlay</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ------------------------------------------------------------ system -->
+  <div class="tabpanel hidden" data-tab="system">
+    <section class="card" aria-labelledby="runtime-h">
+      <div class="row between">
+        <h2 id="runtime-h">Runtime</h2>
+        <span id="runtime-state" class="chip">—</span>
+      </div>
+      <p class="muted small">Repair checks the runtime and puts back anything that went missing without touching installed packages.</p>
+      <div class="wrap">
+        <button id="runtime-repair" class="btn">Repair runtime</button>
+        <button id="runtime-reset" class="btn ghost">Reset guest filesystem</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="distro-h">
+      <div class="row between">
+        <h2 id="distro-h">Linux distro</h2>
+        <span id="distro-state" class="chip">—</span>
+      </div>
+      <p class="muted small">Alpine ships with the app; Ubuntu 24.04 downloads on first use (arm64 base image with apt). Switching stops every site and the Podroid VM, which runs Alpine.</p>
+      <div class="seg" id="distros">
+        <button type="button" data-distro="alpine">Alpine 3.24</button>
+        <button type="button" data-distro="ubuntu">Ubuntu 24.04</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="mode-h">
+      <h2 id="mode-h">Runtime mode</h2>
+      <p class="muted small">Podroid routes through the running VM automatically; the other modes apply while it is stopped.</p>
+      <div class="seg" id="modes">
+        <button data-mode="PRoot">PRoot</button>
+        <button data-mode="Root">Root</button>
+        <button data-mode="Shizuku">Shizuku</button>
+        <button data-mode="Podroid">Podroid</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="log-h">
+      <div class="row between">
+        <h2 id="log-h">Console</h2>
+        <span id="live" class="chip">live</span>
+      </div>
+      <pre id="console" class="console" aria-live="polite"></pre>
+    </section>
+  </div>
+
+  <!-- ------------------------------------------------------------- guide -->
+  <div class="tabpanel hidden" data-tab="guide">
+    <section class="card" aria-labelledby="g-now-h">
+      <div class="row between">
+        <h2 id="g-now-h">Your setup right now</h2>
+        <span id="g-summary" class="chip">—</span>
+      </div>
+      <div class="kv" id="g-now"></div>
+      <ul id="g-warn" class="list"></ul>
+    </section>
+
+    <section class="card" aria-labelledby="g-flow-h">
+      <h2 id="g-flow-h">One site, four layers</h2>
+      <ol class="flow">
+        <li><b>Panel</b> on :9090 — a server inside the app, driving the same engine as the dashboard.</li>
+        <li><b>Runtime mode</b> — decides who runs a guest command: PRoot, chroot, Shizuku or the VM.</li>
+        <li><b>Distro</b> — the filesystem that command lands in: Alpine 3.24 or Ubuntu 24.04.</li>
+        <li><b>Site</b> — a process inside that guest, listening on its port (8080 for <i>www</i>).</li>
+      </ol>
+      <p class="muted small">When a mode and a distro cannot be the same guest — Ubuntu inside the Alpine VM — the app refuses and says why instead of pretending it worked.</p>
+    </section>
+
+    <section class="card" aria-labelledby="g-modes-h">
+      <h2 id="g-modes-h">Runtime modes</h2>
+      <p class="muted small">Change it on System. The mode decides how a command enters Linux; it does not change which distro you are in.</p>
+
+      <details class="guide" data-guide-mode="PRoot">
+        <summary>PRoot · app UID <span class="chip off">default</span></summary>
+        <p>A fake root. <code>proot</code> runs as the app's own UID and rewrites paths, so a full userland works on a phone with no root at all.</p>
+        <dl>
+          <dt>When selected</dt><dd>Every guest command — site starts, package sets, probes — runs through proot as the app UID.</dd>
+          <dt>Needs</dt><dd>Nothing. This is the mode that always works.</dd>
+          <dt>Gives</dt><dd>Alpine or Ubuntu, apk/apt package sets, container sites, the panel.</dd>
+          <dt>Limits</dt><dd>No real root; ports under 1024 cannot be bound; sites stop when the app process is killed.</dd>
+        </dl>
+      </details>
+
+      <details class="guide" data-guide-mode="Root">
+        <summary>Root · chroot</summary>
+        <p>A real <code>chroot</code> through <code>su</code> (Magisk), with /proc, /dev and /sys mounted and volumes bind-mounted.</p>
+        <dl>
+          <dt>When selected</dt><dd>Guest commands run as real root inside a real chroot on your selected distro.</dd>
+          <dt>Needs</dt><dd>Root granted to the app.</dd>
+          <dt>Gives</dt><dd>Everything PRoot gives, plus real UIDs and privileged ports (80, 443).</dd>
+          <dt>Limits</dt><dd>Needs root; a broken root setup fails every site; the app cannot start a command it has no root for.</dd>
+        </dl>
+      </details>
+
+      <details class="guide" data-guide-mode="Shizuku">
+        <summary id="g-shizuku-summary">Shizuku · shell</summary>
+        <p>The same PRoot runtime, but started by the Shizuku service instead of by the app, so sites keep serving after the app is closed.</p>
+        <dl>
+          <dt>When selected</dt><dd>Commands are launched through Shizuku and keep running with the app out of the picture.</dd>
+          <dt>Needs</dt><dd>Shizuku running and permission granted.</dd>
+          <dt>Gives</dt><dd>Alpine or Ubuntu, package sets, container sites, and sites that outlive the app.</dd>
+          <dt>Limits</dt><dd>No privileged ports <i>unless the Shizuku server itself runs as root</i> — then the guest gets real root too; if Shizuku stops, new commands fail.</dd>
+        </dl>
+      </details>
+
+      <details class="guide" data-guide-mode="Podroid">
+        <summary>Podroid · VM</summary>
+        <p>A real Alpine kernel (Podroid's UML engine) with its own 2 GB overlay, started outside the app sandbox through Shizuku. 768 MB RAM, 2 CPUs.</p>
+        <dl>
+          <dt>When selected</dt><dd>Site commands run inside the guest over the TCP bridge on 9099. While the VM is up it owns every forwarded port, so the app routes commands into it even if another mode is selected.</dd>
+          <dt>Needs</dt><dd>Shizuku, plus the VM images (306 MB, one-time download).</dd>
+          <dt>Gives</dt><dd>A genuine kernel and root inside the guest; sites survive the app being killed.</dd>
+          <dt>Limits</dt><dd>Alpine only — it cannot be Ubuntu; container sites do not work in it (their rootfs is not entered); the host port is forwarded by QEMU as the app UID, so still no ports under 1024.</dd>
+        </dl>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="g-distro-h">
+      <h2 id="g-distro-h">Distros</h2>
+      <p class="muted small">Change it on System. Switching stops every site and the Podroid VM, then points the runtime at the other filesystem.</p>
+
+      <details class="guide" data-guide-distro="alpine">
+        <summary>Alpine 3.24</summary>
+        <dl>
+          <dt>What it is</dt><dd>The userland bundled in the APK (~237 MB installed), package manager <code>apk</code>.</dd>
+          <dt>When selected</dt><dd>PRoot, Root and Shizuku enter this filesystem; package sets install with apk. It is also the guest the Podroid VM runs.</dd>
+          <dt>Best for</dt><dd>Everything, and the only distro that can be used together with the Podroid VM.</dd>
+        </dl>
+      </details>
+
+      <details class="guide" data-guide-distro="ubuntu">
+        <summary>Ubuntu 24.04</summary>
+        <dl>
+          <dt>What it is</dt><dd>A one-time 28 MB download from cdimage.ubuntu.com, ~105 MB on disk, <code>apt</code> with noble, noble-updates and noble-security on ports.ubuntu.com.</dd>
+          <dt>When selected</dt><dd>PRoot, Root and Shizuku enter Ubuntu; package sets install with apt (busybox-static, python3, nginx, nodejs…). The filesystem is separate from Alpine, so packages installed there do not exist here.</dd>
+          <dt>Best for</dt><dd>Software that expects Debian/Ubuntu — and it cannot be used together with the Podroid VM.</dd>
+        </dl>
+      </details>
+    </section>
+
+    <section class="card" aria-labelledby="g-sites-h">
+      <h2 id="g-sites-h">Sites and the runtime they pull in</h2>
+      <table class="matrix">
+        <thead>
+          <tr><th>Site</th><th>What serves</th><th>Package set</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Static</td><td><code>httpd</code>, else <code>busybox httpd</code></td><td>busybox-extras / busybox-static</td></tr>
+          <tr><td>PHP</td><td><code>php -S</code></td><td>php (+ fpm, nginx)</td></tr>
+          <tr><td>Node.js</td><td><code>node app.js</code></td><td>nodejs, npm</td></tr>
+          <tr><td>Python</td><td><code>python3 -m http.server</code></td><td>python3 (+ pip)</td></tr>
+          <tr><td>Container</td><td>udocker image, entered by one PRoot</td><td>udocker</td></tr>
+          <tr><td>Custom</td><td>your own command line</td><td>whatever you install</td></tr>
+        </tbody>
+      </table>
+      <p class="muted small">A set is installed on demand the first time a site needs it, in the distro that is active at that moment.</p>
+    </section>
+
+    <section class="card" aria-labelledby="g-together-h">
+      <h2 id="g-together-h">What works together</h2>
+      <table class="matrix">
+        <thead>
+          <tr><th>Mode</th><th>Ubuntu</th><th>Container sites</th><th>Sites survive app close</th><th>Ports &lt; 1024</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>PRoot</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">✘</td><td class="no">✘</td></tr>
+          <tr><td>Root</td><td class="part">◐</td><td class="part">◐</td><td class="part">◐</td><td class="yes">✔</td></tr>
+          <tr><td>Shizuku</td><td class="yes">✔</td><td class="part">◐</td><td class="yes">✔</td><td class="no" id="g-port-shizuku">✘</td></tr>
+          <tr><td>Podroid</td><td class="no">✘</td><td class="no">✘</td><td class="yes">✔</td><td class="no">✘</td></tr>
+        </tbody>
+      </table>
+      <p class="legend muted small">✔ tested on this phone · ◐ by design, not exercised here · ✘ not possible</p>
+      <ul class="list">
+        <li><b>Alpine + Podroid + Static/PHP/Node/Python</b> — the combination this phone does best: a real kernel, ports forwarded automatically.</li>
+        <li><b>Ubuntu + PRoot or Shizuku + apt sets</b> — verified here with busybox-static and python3 3.12.</li>
+        <li><b>Container sites + PRoot/Root/Shizuku</b> — udocker unpacks the image and one PRoot enters it.</li>
+        <li><b>Panel + any mode</b> — it drives the same engine, so it shows what the app sees.</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="g-not-h">
+      <h2 id="g-not-h">What does not work</h2>
+      <ul class="list">
+        <li><b>Ubuntu inside the Podroid VM.</b> The guest image is Alpine, so the VM refuses to boot while Ubuntu is selected; with Podroid mode chosen, sites fall back to PRoot and say so.</li>
+        <li><b>Container sites while the VM is on.</b> The VM runs the command in the guest instead of entering the image's own filesystem, so containers belong to the other three modes.</li>
+        <li><b>Two runtimes on one port.</b> A port can only be held by one process: while the VM forwards 8080, a PRoot site on 8080 cannot bind. The app forwards a running site's port when the VM starts, and takes it back when the VM stops, but never shares it.</li>
+        <li><b>Ports under 1024</b> without privileges. PRoot runs as the app UID and cannot bind them; Root mode always can, and Shizuku can when its own server runs as root.</li>
+        <li><b>Container isolation.</b> No PID or IPC namespaces, no cgroups, no port publishing, no read-only volumes: a container is a filesystem, not a sandbox.</li>
+        <li><b>Running with the app frozen.</b> If the OS suspends the app (the Power row can exempt it), the panel stops answering even though the guest keeps running.</li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<script src="panel.js"></script>
+</body>
+</html>
